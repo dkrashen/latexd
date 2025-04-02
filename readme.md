@@ -83,7 +83,7 @@ This project was developed by Danny Krashen with technical guidance and strategi
 
 License
 
-This project is licensed under the MIT License.
+latexd (c) 2025 by Daniel Krashen is licensed under Creative Commons Attribution-ShareAlike 4.0 International 
 
 ⸻
 
