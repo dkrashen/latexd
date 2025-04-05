@@ -143,10 +143,16 @@ def run_latex_build(tex, extras_dirs=None, copy_extras=False, latexmk_args=None,
     """
     tex_path = Path(tex).resolve()
 
-    # If the file doesn't exist and doesn't end with .tex, try adding .tex extension.
+    # If the filename ends with a trailing dot (e.g., "myfile."), remove the dot(s)
+    if not tex_path.exists() and tex_path.name.endswith('.'):
+        tex_path = tex_path.with_name(tex_path.name.rstrip('.'))
+
+    # If the file doesn't exist and doesn't have a .tex extension, try appending .tex.
     if not tex_path.exists() and tex_path.suffix != ".tex":
         candidate = tex_path.with_suffix(".tex")
         if candidate.exists():
+            tex_path = candidate
+        else:
             tex_path = candidate
 
     if not tex_path.exists() or tex_path.suffix != ".tex":
