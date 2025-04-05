@@ -142,6 +142,13 @@ def run_latex_build(tex, extras_dirs=None, copy_extras=False, latexmk_args=None,
         preview (bool): Whether to open the resulting PDF in the system viewer.
     """
     tex_path = Path(tex).resolve()
+
+    # If the file doesn't exist and doesn't end with .tex, try adding .tex extension.
+    if not tex_path.exists() and tex_path.suffix != ".tex":
+        candidate = tex_path.with_suffix(".tex")
+        if candidate.exists():
+            tex_path = candidate
+
     if not tex_path.exists() or tex_path.suffix != ".tex":
         raise ValueError("Input must be a .tex file")
 
