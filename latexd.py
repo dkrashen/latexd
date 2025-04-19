@@ -5,7 +5,10 @@
 latexd.py
 
 A modular wrapper around `latexmk` to compile a LaTeX document using auxiliary files
-from one or more separate directories, while keeping auxiliary build files in a temporary directory.
+from one or more separate directories (e.g., .sty, .bib, images).  The directory
+containing the main .tex file is always automatically included, so local support
+files live alongside your document without any extra flag.  All build artifacts
+are kept in a temporary folder and cleaned up afterward.
 """
 
 import os
@@ -159,6 +162,10 @@ def run_latex_build(tex, extras_dirs=None, copy_extras=False, latexmk_args=None,
         raise ValueError("Input must be a .tex file")
 
     extras_dirs = [Path(d).resolve() for d in extras_dirs or []]
+    # make sure the .tex file’s own directory is also treated as an extras‐dir
+    tex_dir = tex_path.parent.resolve()
+    if tex_dir not in extras_dirs:
+        extras_dirs.insert(0, tex_dir)
     latexmk_args = latexmk_args or []
 
     # Prepare the build environment

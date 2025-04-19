@@ -1,8 +1,10 @@
 # Latexd
 
-A modular wrapper around `latexmk` to compile a LaTeX document using auxiliary
-files from one or more separate directories, while keeping auxiliary build
-files in a temporary directory.
+A modular wrapper around `latexmk` to compile a LaTeX document using auxiliary files
+from one or more separate directories (e.g., .sty, .bib, images).  The directory
+containing the main .tex file is always automatically included, so local support
+files live alongside your document without any extra flag.  All build artifacts
+are kept in a temporary folder and cleaned up afterward.
 
 ## Overview
 
