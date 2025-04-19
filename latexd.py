@@ -61,6 +61,9 @@ def prepare_build_directory(tex_path, extras_dirs, copy_extras):
             print(f"Warning: extras path {extras_dir} is not a directory. Skipping.")
             continue
         for extra_file in extras_dir.glob("*"):
+            # don’t re‑import the main .tex (we already symlinked it above)
+            if extra_file.name == tex_path.name:
+                continue
             dest = tmpdir / extra_file.name
             if dest.exists():
                 filenames_seen[extra_file.name].append(str(extras_dir))
@@ -91,7 +94,14 @@ def compile_document(build_dir, tex_filename, latexmk_args, timeout=30):
     Returns:
         subprocess.CompletedProcess: The result of the compilation subprocess.
     """
-    cmd = ["latexmk", "-pdf", "-halt-on-error", "-interaction=nonstopmode"] + latexmk_args + [tex_filename]
+    jobname = tex_filename.rsplit(".",1)[0] + "_build"
+    cmd = [
+        "latexmk",
+        "-pdf",
+        f"-jobname={jobname}",
+        "-halt-on-error",
+        "-interaction=nonstopmode",
+        ] + latexmk_args + [tex_filename]
     try:
         result = subprocess.run(
             cmd,
@@ -124,7 +134,7 @@ def post_process_pdf(build_dir, tex_path):
     Returns:
         Path: The final location of the PDF, if generated.
     """
-    output_pdf = build_dir / tex_path.with_suffix(".pdf").name
+    output_pdf = build_dir / f"{tex_path.stem}_build.pdf"
     final_output = tex_path.with_suffix(".pdf")
     if output_pdf.exists():
         shutil.copy2(output_pdf, final_output)
