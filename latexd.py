@@ -204,13 +204,13 @@ if __name__ == "__main__":
     )
     parser.add_argument("tex", help="Path to main .tex file")
     parser.add_argument(
-        "--extras",
+        "-e", "--extras", 
         help="Directory with .bib/.sty/.cls files (can be used multiple times)",
         action="append",
         default=[]
     )
     parser.add_argument(
-        "--copy-extras",
+        "-c", "--copy-extras",
         help="Copy extra files instead of symlinking",
         action="store_true"
     )
