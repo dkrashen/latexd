@@ -20,6 +20,77 @@ import argparse
 import platform
 from collections import defaultdict
 
+
+def parse_paths(path_string):
+    """
+    Parse a colon-separated path string and return a list of all filesystem directories.
+    Handles recursive paths (with double slashes), environment variables, and home directory references.
+    
+    Args:
+        path_string (str): A colon-separated path string like "/path/one//:/path/two:$HOME/path/three"
+        
+    Returns:
+        list: List of all directory paths represented in the string
+    """
+    if not path_string:
+        return []
+    
+    # Split by colon
+    paths = path_string.split(':')
+    
+    # Remove empty entries that might come from trailing colons
+    paths = [p for p in paths if p]
+    
+    result = []
+    
+    for path in paths:
+        # Expand environment variables (like $HOME)
+        expanded_path = os.path.expandvars(path)
+        
+        # Expand user directory references (like ~)
+        expanded_path = os.path.expanduser(expanded_path)
+        
+        # Check if path has recursive marker (//)
+        if '//' in expanded_path:
+            # Split at the recursive marker
+            base_path = expanded_path.split('//')[0]
+            
+            # Make sure base path exists before we try to walk it
+            if os.path.isdir(base_path):
+                # Walk directory recursively
+                for root, dirs, _ in os.walk(base_path):
+                    for directory in dirs:
+                        result.append(os.path.join(root, directory))
+                # Don't forget to include the base path itself
+                result.append(Path(base_path).resolve())
+        else:
+            # Regular path (non-recursive)
+            if os.path.isdir(expanded_path):
+                result.append(Path(expanded_path).resolve())
+    
+    return result
+
+def find_texdinputs():
+    """
+    Find the TEXDINPUTS environment variable and parse it into a list of directories.
+    The format is similar to PATH, where directories are separated by colons.
+    This function handles the recursive path marker (//) and expands environment variables.
+    The directories are resolved to absolute paths and returned as a list.
+    
+    These directories are added to the extras directories for LaTeX compilation.
+    If TEXDINPUTS is not set, an empty list is returned.
+
+    Returns:
+        list: List of directories in TEXDINPUTS.
+    """
+    texdinputs = os.getenv("TEXDINPUTS", "")
+    if not texdinputs:
+        return []
+    
+    # Parse the TEXDINPUTS variable
+    return parse_paths(texdinputs)
+
+
 def open_pdf(pdf_path):
     """
     Open a PDF file using the system's default viewer.
@@ -177,6 +248,13 @@ def run_latex_build(tex, extras_dirs=None, copy_extras=False, latexmk_args=None,
     if tex_dir not in extras_dirs:
         extras_dirs.insert(0, tex_dir)
     latexmk_args = latexmk_args or []
+
+    # Find TEXDINPUTS directories
+    texdinputs_dirs = find_texdinputs()
+    if texdinputs_dirs:
+        for d in texdinputs_dirs:
+            if d not in extras_dirs:
+                extras_dirs.append(d)
 
     # Prepare the build environment
     build_dir = prepare_build_directory(tex_path, extras_dirs, copy_extras)
