@@ -178,7 +178,7 @@ def compile_document(build_dir, tex_filename, latexmk_args, timeout=30):
             cmd,
             cwd=build_dir,
             capture_output=True,
-            text=True,
+            text=False,
             timeout=timeout,
             check=True
         )
